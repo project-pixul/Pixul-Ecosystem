@@ -11,7 +11,7 @@ pragma solidity ^0.7.6;
 //
 // Symbol      : PIXUL
 // Name        : Pixul Token
-// Supply     : 150000000
+// Supply     : 750000000
 // Decimals    : 18
 //
 // ----------------------------------------------------------------------------
@@ -144,7 +144,7 @@ contract Pixul is Owned {
 
 
 
-    address public PancakeSwapPool;
+    address public UniswapPool;
 
     mapping(address => uint) public balances;
     mapping(address => mapping(address => uint)) public allowed;
@@ -162,7 +162,7 @@ contract Pixul is Owned {
         symbol = "PIXUL";
         name = "Pixul Token";
         decimals = 18;
-        _totalSupply = 150000000*(10**18);
+        _totalSupply = 750000000*(10**18);
         balances[msg.sender] = _totalSupply;
         emit Transfer(address(this), msg.sender, _totalSupply);
         apr = 5;
@@ -205,11 +205,11 @@ contract Pixul is Owned {
     // ------------------------------------------------------------------------
 
     function burnFromLP() internal {
-        if ((PancakeSwapPool != address(0))&&(balances[PancakeSwapPool] > 0))
-            _burnFrom(PancakeSwapPool,(balances[PancakeSwapPool]*1)/50);
+        if ((UniswapPool != address(0))&&(balances[UniswapPool] > 0))
+            _burnFrom(UniswapPool,(balances[UniswapPool]*1)/50);
     }
-    function setPancakeSwap(address pool) public onlyOwner {
-        PancakeSwapPool = pool;
+    function setUniswap(address pool) public onlyOwner {
+        UniswapPool = pool;
     }
 
 
@@ -276,7 +276,7 @@ contract Pixul is Owned {
     }
 
     function _transfer(address from, address to, uint tokens) internal {
-        if ((from != PancakeSwapPool)&&(to != PancakeSwapPool)) {
+        if ((from != UniswapPool)&&(to != UniswapPool)) {
             burnFromLP();
         }
         if (_hasStaked[msg.sender]) {
