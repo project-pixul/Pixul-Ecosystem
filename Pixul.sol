@@ -120,10 +120,10 @@ contract Pixul is Owned {
     string public  name;
     uint8 public decimals;
     uint256 public _totalSupply;
-    uint256 burnRatio = 3;
-    uint256 feeRatio = 4;
+    uint256 burnRatio = 0;
+    uint256 feeRatio = 0;
     uint256 pendingFees;
-    uint256 keepRatio = 93;
+    uint256 keepRatio = 100;
     uint256 apr;
     uint256 stakeDelay;
     uint256 stakingRewards;
