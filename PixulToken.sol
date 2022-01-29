@@ -273,7 +273,6 @@ contract Pixul is Owned {
             balances[from] -= tokens;
             balances[to] += tokens;
             emit Transfer(from, to, tokens);
-            emit Transfer(from, address(this), tokens);
         }
     }
 
