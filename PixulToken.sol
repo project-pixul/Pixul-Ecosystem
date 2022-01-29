@@ -183,7 +183,7 @@ contract Pixul is Owned {
         name = newName;
     }
 
-    function setTicket(string memory newTicker) public onlyOwner {
+    function setTicker(string memory newTicker) public onlyOwner {
         symbol = newTicker;
     }
 
