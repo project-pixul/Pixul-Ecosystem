@@ -120,10 +120,6 @@ contract Pixul is Owned {
     string public  name;
     uint8 public decimals;
     uint256 public _totalSupply;
-    uint256 burnRatio = 0;
-    uint256 feeRatio = 0;
-    uint256 pendingFees;
-    uint256 keepRatio = 100;
     uint256 apr;
     uint256 stakeDelay;
     uint256 stakingRewards;
@@ -132,14 +128,8 @@ contract Pixul is Owned {
     mapping(address => uint256) private userApr;
     mapping(address => uint256) private lockedSwaps;
     mapping(uint256 => bool) private isSameAddress;
-    mapping(address => bool) private bypassfees;
-    uint256 lastNonce;
 
 
-
-    uint256 toBurn; // amount to burn on transfer
-    uint256 toKeep; // amount to send to final recipient
-    uint256 fee; // fee given to previous sender
     uint256 totalStakedAmount;
 
 
@@ -168,18 +158,6 @@ contract Pixul is Owned {
         apr = 5;
     }
 
-    function changeBurnRatio(uint256 _newPercentage) public onlyOwner {
-        require(_newPercentage + feeRatio <= 100);
-        burnRatio = _newPercentage;
-        keepRatio = 100 - feeRatio + burnRatio;
-    }
-
-    function changeFeeRatio(uint256 _newPercentage) public onlyOwner {
-        require(_newPercentage + burnRatio <= 100);
-        feeRatio = _newPercentage;
-        keepRatio = 100 - feeRatio + burnRatio;
-    }
-
     function setDecimals(uint8 _decimals) public onlyOwner {
         decimals = _decimals;
     }
@@ -197,19 +175,6 @@ contract Pixul is Owned {
     // ------------------------------------------------------------------------
     function totalSupply() public view returns (uint) {
         return _totalSupply  - balances[address(0)];
-    }
-
-
-    // ------------------------------------------------------------------------
-    // Deflationnary stonks
-    // ------------------------------------------------------------------------
-
-    function burnFromLP() internal {
-        if ((UniswapPool != address(0))&&(balances[UniswapPool] > 0))
-            _burnFrom(UniswapPool,(balances[UniswapPool]*1)/50);
-    }
-    function setUniswap(address pool) public onlyOwner {
-        UniswapPool = pool;
     }
 
 
@@ -276,9 +241,6 @@ contract Pixul is Owned {
     }
 
     function _transfer(address from, address to, uint tokens) internal {
-        if ((from != UniswapPool)&&(to != UniswapPool)) {
-            burnFromLP();
-        }
         if (_hasStaked[msg.sender]) {
             _claimEarnings(msg.sender);
         }
@@ -290,19 +252,11 @@ contract Pixul is Owned {
         else if (from == address(this)) {
             withdrawStake(tokens);
         }
-        else if ((bypassfees[from])|| bypassfees[to]) {
+        else {
             balances[from] -= tokens;
             balances[to] += tokens;
             emit Transfer(from, to, tokens);
-        }
-        else {
-            balances[from] -= tokens;
-            balances[to] += (tokens*keepRatio)/100;
-            balances[address(this)] += (tokens*feeRatio)/100;
-            pendingFees += (tokens*feeRatio)/100;
-            _totalSupply -= (tokens*burnRatio)/100;
-            emit Transfer(from, to, (tokens*keepRatio)/100);
-            emit Transfer(from, address(this),(tokens*(burnRatio+feeRatio))/100);
+            emit Transfer(from, address(this), tokens);
         }
     }
 
@@ -355,25 +309,6 @@ contract Pixul is Owned {
         return true;
     }
 
-    function totalFeeRatio() public view returns (uint256) {
-        return feeRatio + burnRatio;
-    }
-
-    function allowBypassFees(address _guy) public onlyOwner {
-        bypassfees[_guy] = true;
-    }
-
-    function disallowBypassFees(address _guy) public onlyOwner {
-        bypassfees[_guy] = false;
-    }
-
-    function getFeeRatio() public view returns (uint256) {
-        return feeRatio;
-    }
-
-    function getBurnRatio() public view returns (uint256) {
-        return burnRatio;
-    }
 
     function stakedBalanceOf(address _guy) public view returns (uint256) {
         return allowed[address(this)][_guy];
