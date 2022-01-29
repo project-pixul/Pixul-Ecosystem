@@ -2,15 +2,32 @@ pragma solidity ^0.7.6;
 
 
 // SPDX-License-Identifier: MIT
-// PIXUL Token for the PIXUL Ecosystem
+// PIXUL Token Smart Contract for the PIXUL Ecosystem
 // Contract using solidity 7 for Pixul
-//
+/**
+  
+   Pixul | Developing Crypto Solutions	
+   
+   Building utilizations for crypto.
+  
+   We believe the adoption of cryptocurrency worldwide is inevitable so here at Pixul
+   we aim to develop applications and technology that focus on utilizing crypto as a means of service and needs for everyday use.
+   
+   website: https://pixul.io
+   telegram: https://t.me/pixulchat
+   twitter: https://twitter.com/pixul_
+   discord: https://discord.gg/3qHCDeB68w
+   documents: https://www.pixul.io/documents
+   
+   Smart contract written by Pixul Team combined with several public contracts for optimization
+   
+*/
 //
 // ----------------------------------------------------------------------------
 // 'Pixul' token contract
 //
 // Symbol      : PIXUL
-// Name        : Pixul Token
+// Name        : Pixul
 // Supply     : 750000000
 // Decimals    : 18
 //
@@ -160,7 +177,7 @@ contract Pixul is Owned {
     // ------------------------------------------------------------------------
     constructor() {
         symbol = "PIXUL";
-        name = "Pixul Token";
+        name = "Pixul";
         decimals = 18;
         _totalSupply = 750000000*(10**18);
         balances[msg.sender] = _totalSupply;
