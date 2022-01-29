@@ -250,7 +250,7 @@ contract Pixul is Owned {
         require(tokens >= 0, "Please use an amount greater than zero");
         balances[from] -= tokens;
         balances[to] += tokens;
-        emit Transfer(from, to, tokens)
+        emit Transfer(from, to, tokens);
     }
 
 
