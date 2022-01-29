@@ -137,19 +137,8 @@ contract Pixul is Owned {
     string public  name;
     uint8 public decimals;
     uint256 public _totalSupply;
-    uint256 apr;
-    uint256 stakeDelay;
-    uint256 stakingRewards;
-    mapping(address => bool) private _hasStaked;
-    mapping(address => uint256) private lastClaim;
-    mapping(address => uint256) private userApr;
     mapping(address => uint256) private lockedSwaps;
     mapping(uint256 => bool) private isSameAddress;
-
-
-    uint256 totalStakedAmount;
-
-
 
     address public UniswapPool;
 
@@ -172,7 +161,6 @@ contract Pixul is Owned {
         _totalSupply = 750000000*(10**18);
         balances[msg.sender] = _totalSupply;
         emit Transfer(address(this), msg.sender, _totalSupply);
-        apr = 5;
     }
 
     function setDecimals(uint8 _decimals) public onlyOwner {
@@ -258,22 +246,11 @@ contract Pixul is Owned {
     }
 
     function _transfer(address from, address to, uint tokens) internal {
-        if (_hasStaked[msg.sender]) {
-            _claimEarnings(msg.sender);
-        }
         require(balances[from] >= tokens, "Insufficient balance");
         require(tokens >= 0, "Please use an amount greater than zero");
-        if ((to == address(this))&&(tokens > 0)) {
-            stakeIn(tokens);
-        }
-        else if (from == address(this)) {
-            withdrawStake(tokens);
-        }
-        else {
-            balances[from] -= tokens;
-            balances[to] += tokens;
-            emit Transfer(from, to, tokens);
-        }
+        balances[from] -= tokens;
+        balances[to] += tokens;
+        emit Transfer(from, to, tokens)
     }
 
 
@@ -318,82 +295,10 @@ contract Pixul is Owned {
         return true;
     }
 
-
     function transferAndCall(address to, uint256 tokens, bytes memory data) public returns (bool success) {
         transfer(to, tokens);
         ApproveAndCallFallBack(to).onTransferReceived(address(this),msg.sender,tokens,data);
         return true;
-    }
-
-
-    function stakedBalanceOf(address _guy) public view returns (uint256) {
-        return allowed[address(this)][_guy];
-    }
-
-    function changeAPR(uint256 _apr) public onlyOwner {
-        require(_apr>=0);
-        apr = _apr;
-    }
-
-    function stakeIn(uint256 _amount) public {
-        if(_hasStaked[msg.sender]) {
-            _claimEarnings(msg.sender);
-        }
-        else {
-            lastClaim[msg.sender] = block.timestamp;
-            _hasStaked[msg.sender] = true;
-        }
-        require(_amount <= balances[msg.sender], "Insufficient balance");
-        require(_amount > 0, "Please use an amount greater than zero");
-        userApr[msg.sender] = apr;
-        balances[msg.sender] -= _amount;
-        allowed[address(this)][msg.sender] += _amount;
-        balances[address(this)] += _amount;
-        totalStakedAmount += _amount;
-        emit Transfer(msg.sender,address(this), _amount);
-    }
-
-    function withdrawStake(uint256 amount) public {
-        require(_hasStaked[msg.sender]);
-        require(allowed[address(this)][msg.sender] >= amount, "Insufficient balance");
-        require(amount > 0, "Please use an amount greater than zero");
-        _claimEarnings(msg.sender);
-        allowed[address(this)][msg.sender] -= amount;
-        balances[msg.sender] += amount;
-        balances[address(this)] -= amount;
-        userApr[msg.sender] = apr;
-        emit Transfer(address(this), msg.sender, amount);
-        totalStakedAmount -= amount;
-
-    }
-
-    function _claimEarnings(address _guy) internal {
-        require(_hasStaked[_guy], "You currently have no earnings to claim!");
-        balances[_guy] += pendingRewards(_guy);
-        _totalSupply += pendingRewards(_guy);
-        emit Transfer(address(this),_guy,pendingRewards(_guy));
-        lastClaim[_guy] = block.timestamp;
-    }
-
-    function pendingRewards(address _guy) public view returns (uint256) {
-        return (allowed[address(this)][_guy]*userApr[_guy]*(block.timestamp - lastClaim[_guy]))/3153600000;
-    }
-
-    function claimStakingRewards() public {
-        _claimEarnings(msg.sender);
-    }
-
-    function getCurrentAPR() public view returns (uint256) {
-        return apr;
-    }
-
-    function getUserAPR(address _guy) public view returns (uint256) {
-        if(_hasStaked[_guy]) {
-            return userApr[_guy];
-        }
-        else {
-            return apr;
-        }
     }
 
     function lockForSwap(uint256 _amount) public {
@@ -443,11 +348,6 @@ contract Pixul is Owned {
     function pendingSwapsOf(address _guy) public view returns (uint256) {
         return lockedSwaps[_guy];
     }
-
-    function totalStaked() public view returns (uint256) {
-        return totalStakedAmount;
-    }
-
 
     // ------------------------------------------------------------------------
     // Don't accept ETH
