@@ -45,16 +45,6 @@ interface ERC20Interface {
     function transferFrom(address from, address to, uint tokens) external returns (bool success);
 }
 
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address) {
-        return msg.sender;
-    }
-
-    function _msgData() internal view virtual returns (bytes calldata) {
-        return msg.data;
-    }
-}
-
 // ----------------------------------------------------------------------------
 // Contract function to receive approval and execute function in one call
 // ----------------------------------------------------------------------------
@@ -67,7 +57,7 @@ interface ApproveAndCallFallBack {
 // ----------------------------------------------------------------------------
 // Owned contract
 // ----------------------------------------------------------------------------
-contract Owned is Context {
+contract Owned {
     address public owner;
     address public newOwner;
     mapping (address => bool) public minterAccesses;
@@ -142,7 +132,7 @@ contract Owned is Context {
 // token transfers
 //Pixul contract, this inherits from Context, ERC-20 standard and also uses a Reentry solution
 // ----------------------------------------------------------------------------
-contract Pixul is Context, Owned{
+contract Pixul is Owned{
     string public symbol;
     string public  name;
     uint8 public decimals;
