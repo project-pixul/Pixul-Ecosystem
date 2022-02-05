@@ -1,25 +1,25 @@
-pragma solidity ^0.8.7;
+pragma solidity 0.8.7;
 
 // SPDX-License-Identifier: MIT
 // PIXUL Token Smart Contract for the PIXUL Ecosystem
 // Contract using solidity 8 for Pixul
 /**
-  
-   Pixul | Developing Crypto Solutions	
-   
+
+   Pixul | Developing Crypto Solutions
+
    Building utilizations for crypto.
-  
+
    We believe the adoption of cryptocurrency worldwide is inevitable so here at Pixul
    we aim to develop applications and technology that focus on utilizing crypto as a means of service and needs for everyday use.
-   
+
    website: https://pixul.io
    telegram: https://t.me/pixulchat
    twitter: https://twitter.com/pixul_
    discord: https://discord.gg/3qHCDeB68w
    documents: https://www.pixul.io/documents
-   
+
    Smart contract written by Pixul Team combined with several public contracts for optimization
-   
+
 */
 //
 // ----------------------------------------------------------------------------
@@ -85,25 +85,26 @@ contract Owned is Context {
     }
 
     modifier onlyOwner {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Admin: onlyOwner only function");
         _;
     }
 
     modifier onlyMinter {
-        require((minterAccesses[msg.sender]) || (chainSwappers[msg.sender]) || (msg.sender == owner));
+        require((minterAccesses[msg.sender]) || (chainSwappers[msg.sender]) || (msg.sender == owner), "Admin: Contract admin only");
         _;
     }
 
     modifier onlyChainSwapper {
-        require((chainSwappers[msg.sender]) || (msg.sender == owner));
+        require((chainSwappers[msg.sender]) || (msg.sender == owner), "Admin: ChainSwapper only");
         _;
     }
 
     function transferOwnership(address _newOwner) public onlyOwner {
         newOwner = _newOwner;
+        require(_newOwner != address(0), "Admin: onlyOwner can transfer contract ownership only");
     }
     function acceptOwnership() public {
-        require(msg.sender == newOwner);
+        require(msg.sender == newOwner, "Admin: newOwner can accept ownership of contract only");
         emit OwnershipTransferred(owner, newOwner);
         owner = newOwner;
         newOwner = address(0);
@@ -135,37 +136,13 @@ contract Owned is Context {
     }
 }
 
-//Based on openzeppelin solution
-abstract contract ReentrancyGuard{
-	    uint256 private constant _NOT_ENTERED = 1;
-	    uint256 private constant _ENTERED = 2;
 
-	    uint256 private _status;
-
-	constructor () {
-		_status = _NOT_ENTERED;
-	}
-	modifier nonReentrant() {
-		// On the first call to nonReentrant, _notEntered will be true
-		require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
-
-		// Any calls to nonReentrant after this point will fail
-		_status = _ENTERED;
-		_;
-
-		// By storing the original value once again, a refund is triggered (see
-		// https://eips.ethereum.org/EIPS/eip-2200)
-		_status = _NOT_ENTERED;
-	}
-    
-
-    }
 // ----------------------------------------------------------------------------
 // ERC20 Token, with the addition of symbol, name and decimals and assisted
 // token transfers
 //Pixul contract, this inherits from Context, ERC-20 standard and also uses a Reentry solution
 // ----------------------------------------------------------------------------
-contract Pixul is Context, Owned, ReentrancyGuard {
+contract Pixul is Context, Owned{
     string public symbol;
     string public  name;
     uint8 public decimals;
@@ -196,23 +173,12 @@ contract Pixul is Context, Owned, ReentrancyGuard {
         emit Transfer(address(this), msg.sender, _totalSupply);
     }
 
-    function setDecimals(uint8 _decimals) public onlyOwner {
-        decimals = _decimals;
-    }
-
-    function setName(string memory newName) public onlyOwner {
-        name = newName;
-    }
-
-    function setTicker(string memory newTicker) public onlyOwner {
-        symbol = newTicker;
-    }
 
     // ------------------------------------------------------------------------
     // Total supply
     // ------------------------------------------------------------------------
     function totalSupply() public view returns (uint) {
-        return _totalSupply  - balances[address(0)];
+        return _totalSupply;
     }
 
 
@@ -262,7 +228,7 @@ contract Pixul is Context, Owned, ReentrancyGuard {
     // for spending from the from account and
     // - From account must have sufficient balance to transfer
     // - Spender must have sufficient allowance to transfer
-    // - 0 value transfers are allowed
+    // - 0 value transfers are not-allowed
     // ------------------------------------------------------------------------
     function transferFrom(address from, address to, uint tokens) public returns (bool success) {
         if(from == msg.sender) {
@@ -280,7 +246,7 @@ contract Pixul is Context, Owned, ReentrancyGuard {
 
     function _transfer(address from, address to, uint tokens) internal {
         require(balances[from] >= tokens, "Insufficient balance");
-        require(tokens >= 0, "Please use an amount greater than zero");
+        require(tokens > 0, "Please use an amount greater than zero");
         balances[from] -= tokens;
         balances[to] += tokens;
         emit Transfer(from, to, tokens);
@@ -298,14 +264,14 @@ contract Pixul is Context, Owned, ReentrancyGuard {
     // mints token
     // ------------------------------------------------------------------------
     function mintTo(address _to, uint256 _amount) public onlyMinter {
-        require(_amount > 0);
+        require(_amount > 0, "Admin: Amount must be greater than 0");
         balances[_to] += _amount;
         _totalSupply += _amount;
         emit Transfer(address(this), _to, _amount);
     }
 
     function _burnFrom(address _guy, uint256 _amount) internal {
-        require((_amount > 0)||_amount <= balances[_guy]);
+        require((_amount > 0) && _amount <= balances[_guy], "Admin: Amount must be greater than 0/guy must have enough tokens to burn");
         balances[_guy] -= _amount;
         _totalSupply -= _amount;
         emit Transfer(_guy, address(this), _amount);
@@ -335,8 +301,8 @@ contract Pixul is Context, Owned, ReentrancyGuard {
     }
 
     function lockForSwap(uint256 _amount) public {
-        require(_amount <= balances[msg.sender]);
-        require(_amount > 0);
+        require(_amount <= balances[msg.sender], "Admin: Insufficient balance");
+        require(_amount > 0, "Admin: You must enter an amount greater than 0");
         balances[msg.sender] -= _amount;
         lockedSwaps[msg.sender] += _amount;
         balances[address(this)] += _amount;
@@ -345,8 +311,8 @@ contract Pixul is Context, Owned, ReentrancyGuard {
     }
 
     function lockForSwapTo(address _to,uint256 _amount) public {
-        require(_amount <= balances[msg.sender], "Insufficient balance");
-        require(_amount > 0, "Please enter an amount greater than zero");
+        require(_amount <= balances[msg.sender], "Admin: Insufficient balance");
+        require(_amount > 0, "Admin: You must enter an amount greater than 0");
         balances[msg.sender] -= _amount;
         lockedSwaps[_to] += _amount;
         balances[address(this)] += _amount;
@@ -355,7 +321,7 @@ contract Pixul is Context, Owned, ReentrancyGuard {
     }
 
     function cancelSwaps() public {
-        require(lockedSwaps[msg.sender] > 0);
+        require(lockedSwaps[msg.sender] > 0, "Admin: There are not enough tokens in this swap to cancel");
         balances[msg.sender] += lockedSwaps[msg.sender];
         balances[address(this)] -= lockedSwaps[msg.sender];
         emit Transfer(address(this),msg.sender,lockedSwaps[msg.sender]);
@@ -363,7 +329,7 @@ contract Pixul is Context, Owned, ReentrancyGuard {
     }
 
     function cancelSwapsOf(address _guy) public onlyChainSwapper {
-        require(lockedSwaps[_guy] > 0);
+        require(lockedSwaps[_guy] > 0 , "Admin: This swap does not exist");
         balances[_guy] += lockedSwaps[_guy];
         balances[address(this)] -= lockedSwaps[msg.sender];
         emit Transfer(address(this),msg.sender,lockedSwaps[msg.sender]);
@@ -371,7 +337,7 @@ contract Pixul is Context, Owned, ReentrancyGuard {
     }
 
     function swapConfirmed(address _guy, uint256 _amount) public onlyChainSwapper {
-        require((_amount <= lockedSwaps[_guy])&&(_amount > 0));
+        require((_amount <= lockedSwaps[_guy])&&(_amount > 0), "Admin: Insufficient balance or amount less than 0");
         balances[address(this)] -= _amount;
         _totalSupply += _amount;
         lockedSwaps[_guy] -= _amount;
