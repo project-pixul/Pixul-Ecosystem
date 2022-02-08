@@ -168,12 +168,7 @@ contract Pixul is Owned{
     // Get the token balance for account tokenOwner
     // ------------------------------------------------------------------------
     function balanceOf(address tokenOwner) public view returns (uint balance) {
-        if (tokenOwner == address(0)) {
-            return 0;
-        }
-        else {
-            return balances[tokenOwner];
-        }
+        return balances[tokenOwner];
     }
 
 
