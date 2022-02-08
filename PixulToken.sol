@@ -188,7 +188,7 @@ contract Pixul is Owned{
     // ------------------------------------------------------------------------
     // Transfer the balance from token owner's account to to account
     // - Owner's account must have sufficient balance to transfer
-    // - 0 value transfers are allowed
+    // - 0 value transfers are not allowed
     // ------------------------------------------------------------------------
     function transfer(address to, uint tokens) public returns (bool success) {
         _transfer(msg.sender, to, tokens);
