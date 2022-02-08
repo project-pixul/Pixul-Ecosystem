@@ -134,8 +134,8 @@ contract Owned {
 // ----------------------------------------------------------------------------
 contract Pixul is Owned{
     string public symbol;
-    string public  name;
-    uint8 public decimals;
+    string public name;
+    uint8 public immutable decimals;
     uint256 public _totalSupply;
     mapping(address => uint256) private lockedSwaps;
     mapping(uint256 => bool) private isSameAddress;
@@ -154,10 +154,10 @@ contract Pixul is Owned{
     // ------------------------------------------------------------------------
     // Constructor
     // ------------------------------------------------------------------------
-    constructor() {
-        symbol = "PIXUL";
-        name = "Pixul";
-        decimals = 18;
+    constructor(string memory _symbol, string memory _name, uint8 _decimals) {
+        symbol = _symbol;
+        name = _name;
+        decimals = _decimals;
         _totalSupply = 750000000*(10**18);
         balances[msg.sender] = _totalSupply;
         emit Transfer(address(this), msg.sender, _totalSupply);
