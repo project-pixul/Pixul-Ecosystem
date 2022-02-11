@@ -130,9 +130,6 @@ contract Pixul is Owned{
     uint8 public immutable decimals;
     uint256 public _totalSupply;
     mapping(address => uint256) private lockedSwaps;
-    mapping(uint256 => bool) private isSameAddress;
-
-    address public UniswapPool;
 
     mapping(address => uint) public balances;
     mapping(address => mapping(address => uint)) public allowed;
