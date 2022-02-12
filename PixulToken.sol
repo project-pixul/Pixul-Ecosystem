@@ -125,8 +125,8 @@ contract Owned {
 // Pixul contract, this inherits from Owned
 // ----------------------------------------------------------------------------
 contract Pixul is Owned{
-    string public immutable symbol;
-    string public immutable name;
+    string public symbol;
+    string public name;
     uint8 public immutable decimals;
     uint256 public _totalSupply;
     mapping(address => uint256) private lockedSwaps;
