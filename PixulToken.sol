@@ -122,11 +122,11 @@ contract Owned {
 // ----------------------------------------------------------------------------
 // ERC20 Token, with the addition of symbol, name and decimals and assisted
 // token transfers
-//Pixul contract, this inherits from Context, ERC-20 standard and also uses a Reentry solution
+// Pixul contract, this inherits from Owned
 // ----------------------------------------------------------------------------
 contract Pixul is Owned{
-    string public symbol;
-    string public name;
+    string public immutable symbol;
+    string public immutable name;
     uint8 public immutable decimals;
     uint256 public _totalSupply;
     mapping(address => uint256) private lockedSwaps;
